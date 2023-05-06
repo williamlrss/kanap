@@ -1,6 +1,7 @@
 // index.html // summary : render products from API into webpage
 
 'use strict';
+
 // fetching and store data into cache avoiding unnecessary calls
 const fetchData = async () => {
   if (cache) {
@@ -81,5 +82,6 @@ const fetchDataAndRender = async () => {
   }
 }
 
+// Define cache variable and call main function
 let cache = null;
 fetchDataAndRender();

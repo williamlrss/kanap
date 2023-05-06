@@ -1,4 +1,8 @@
+// Creating custom Alert improving user experience | module type purpose for all files
+
 'use strict';
+
+// Main function | Pure JavaScript custom alert creation
 export default function showAlert(message) {
   const alertContainer = document.createElement('div');
   alertContainer.style.cssText = `
@@ -40,7 +44,7 @@ export default function showAlert(message) {
     alertContainer.style.opacity = 0;
     setTimeout(() => {
       alertContainer.remove();
-    }, 500); // Decreased timeout to 500ms for smoother transition
+    }, 500); // timeout for smooth transition
   }, 1000);
 }
 

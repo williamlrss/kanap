@@ -1,6 +1,7 @@
 // product.html // Summary: render related URL ID & API product into webpage, allowing user to select options and add product into cart
 
 'use strict';
+
 // Creating a new Cart instance
 import Cart from "./classCart.js";
 const productToCart = new Cart();
@@ -85,9 +86,9 @@ const renderProductDetails = ({imageUrl, altTxt, name, price, description, color
   itemOptionContainer.setAttribute("aria-label", `Couleurs disponibles pour l'article ${name}, ${colors.join(", ")}`);
   itemQuantityContainer.setAttribute("aria-label", `Quantité souhaitée pour l'article ${name}`);
 
-  
+
+   // adding product into cart
   const addToCart = document.getElementById("addToCart");
-  // adding product into cart
   addToCart.addEventListener('click', () => {
     const itemId = id;
     const itemColor = document.getElementById("colors").value;
@@ -103,9 +104,9 @@ const renderProductDetails = ({imageUrl, altTxt, name, price, description, color
     }
 
     // adding successful accessibility label
-    addToCart.setAttribute("aria-label", `produit ${name} ${itemColor} envoyé au panier`);
+    addToCart.setAttribute("aria-label", `produit ${name} ${itemColor} ajouté au panier`);
 
-    // passing product object through add function in class cart
+    // passing product object through the add function in class cart
     productToCart.classCartAdd({
       _id: itemId,
       color: itemColor,
@@ -125,5 +126,6 @@ const fetchDataAndRender = async () => {
   }
 }
 
+// Define cache variable and call main function
 let cache = null;
 fetchDataAndRender();
