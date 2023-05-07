@@ -6,8 +6,6 @@
 import Cart from "./classCart.js";
 let productsFromCart = new Cart();
 
-
-
 // Custom alert for better user experience
 import showAlert from "./customAlert.js";
 
@@ -36,6 +34,9 @@ const fetchData = async () => {
         if (error instanceof TypeError || error instanceof DOMException) {
             // Network or CORS error
             throw new Error('There was a problem fetching the data. Please try again later.');
+        } else if (error instanceof SyntaxError) {
+            // JSON parse error
+            throw new Error('There was a problem parsing the data. Please try again later.');
         } else {
             throw new Error(error.message);
         }
@@ -64,6 +65,7 @@ const renderCartProducts = (data) => {
 
         // Add product properties
         cartItemContainer.dataset.id = _id;
+        cartItemContainer.dataset.name = name;
         cartItemContainer.dataset.color = color;
 
         // Create product image
@@ -76,6 +78,7 @@ const renderCartProducts = (data) => {
         itemImage.alt = altText;
         itemImageContainer.append(itemImage);
 
+        // Create settings sections
         const itemContentContainer = document.createElement('div');
         itemContentContainer.classList.add("cart__item__content");
         cartItemContainer.append(itemContentContainer);
@@ -96,8 +99,7 @@ const renderCartProducts = (data) => {
 
         // Create product price
         const itemContentPrice = document.createElement('p');
-        // Create class for updateTotal function purpose
-        itemContentPrice.classList.add('getAllPrices');
+        itemContentPrice.classList.add('getAllPrices'); // Create class for updateTotal function purpose
         itemContentPrice.textContent = `${price} €`;
         itemContentDescription.append(itemContentPrice);
 
@@ -121,7 +123,7 @@ const renderCartProducts = (data) => {
         itemQuantityInput.setAttribute("aria-label", `Quantité souhaitée pour ${name} ${color}`);
         itemQuantityInput.setAttribute("min", "1");
         itemQuantityInput.setAttribute("max", "100");
-        itemQuantityInput.value = quantity;
+        itemQuantityInput.value = parseInt(quantity);
         itemQuantityContainer.append(itemQuantityInput);
 
         const deleteItemContainer = document.createElement('div');
@@ -141,62 +143,57 @@ const renderCartProducts = (data) => {
     // Applying all items to the main Fragment
     mainFragment.append(...itemsFragments);
     cartItemsContainer.append(mainFragment);
+};
 
-    // Handle user quantity change
-    const newQuantityInput = document.querySelectorAll('.itemQuantity');
-    newQuantityInput.forEach((input) => {
-        input.addEventListener('change', (event) => {
-            // Target section of item to retrieve product properties
-            const newQuantityItem = event.target.closest('.cart__item');
-            if (!newQuantityItem) {
-                // Handle the case where no matching ancestor is found
-                return;
-            }
 
-            // Retrieve product properties
-            const { id: _id, color } = newQuantityItem.dataset;
-            const newQuantity = event.target.valueAsNumber;
+// Users interactions
+const cartItems = document.getElementById('cart__items').children;
+const handleUserInteractions = () => {
+
+    // Loop through each product
+    for (let i = 0; i < cartItems.length; i++) {
+        const cartItem = cartItems[i];
+
+        // Get product properties
+        const attributes = cartItem.attributes;
+        const _id = attributes.getNamedItem("data-id").value;
+        const name = attributes.getNamedItem("data-name").value;
+        const color = attributes.getNamedItem("data-color").value;
+
+        // Handle new quantity
+        const itemQuantity = cartItem.querySelector('.itemQuantity');
+        itemQuantity.addEventListener('change', () => {
+
+            const newQuantity = itemQuantity.valueAsNumber;
             if (isNaN(newQuantity) || newQuantity <= 0 || newQuantity >= 100) {
                 showAlert('Choisissez une valeur entre 1 et 100');
                 return;
             }
+            // Call our newQuantity function in class cart, passing product properties
+            productsFromCart.classCartNewQuantity({ _id, name, color, newQuantity });
 
-            // Target function in class cart, passing product properties
-            productsFromCart.classCartNewQuantity({ _id, color, newQuantity });
-
-            // Target total function down below
+            // Target total function
             updateTotals();
         });
-    });
-
-    const removeItemButton = document.querySelectorAll('.deleteItem');
-    removeItemButton.forEach((button) => {
-        button.addEventListener('click', (event) => {
-            // Target section of item to retrieve product properties
-            const removeItem = event.target.closest('.cart__item');
-            if (!removeItem) {
-                // Handle the case where no matching ancestor is found
-                return;
-            }
-
-            // Retrieve product properties
-            const { id: _id, color } = removeItem.dataset;
-
+        
+        // Handle delete button
+        const itemDeleteButton = cartItem.querySelector('.deleteItem')
+        itemDeleteButton.addEventListener('click', () => {
             // removing item from the DOM
-            removeItem.remove();
+            itemDeleteButton.closest('.cart__item').remove();
 
             // passing item properties over class cart function
-            productsFromCart.classCartRemove({ _id, color });
+            productsFromCart.classCartRemove({ _id, name, color });
 
             // Target total & empty function down below
-            checkIfEmptyCart();
+            displayMsgIfEmpty();
             updateTotals();
         });
-    });
-};
+    }
+}
 
 // Calcul total of price and quantity and apply values to the DOM
-function updateTotals() {
+const updateTotals = () => {
     const items = document.querySelectorAll('.cart__item');
     let totalPrice = 0;
     let totalQuantity = 0;
@@ -206,7 +203,7 @@ function updateTotals() {
         const item = items[i];
 
         // Retrieving price and quantity values
-        const price = parseInt(item.querySelector('.getAllPrices').textContent);
+        const price = parseInt(item.querySelector('.getAllPrices').textContent); // Class added in Render section
         const quantity = parseInt(item.querySelector('.itemQuantity').value);
 
         totalPrice += price * quantity;
@@ -221,7 +218,7 @@ function updateTotals() {
 }
 
 // Display message and remove form if cart is empty
-function checkIfEmptyCart() {
+const displayMsgIfEmpty = () => {
     const heading = document.getElementById('cartAndFormContainer').querySelector('h1');
     const form = document.querySelector('form');
 
@@ -239,14 +236,23 @@ function checkIfEmptyCart() {
 const fetchDataAndRender = async () => {
     try {
         const data = await fetchData();
-        renderCartProducts(data);
+        await renderCartProducts(data);
+        handleUserInteractions();
         updateTotals();
-        checkIfEmptyCart();
+        displayMsgIfEmpty();
+
     } catch (error) {
         console.log('FetchDataAndRender() Error, rendering products details failure:', error.message);
     }
 }
 
-// Define cache variable and call main function
+// Define cache variable
+const cacheTime = 3600000; // 1 hour
 let cache = null;
+
+setInterval(() => {
+    cache = null;
+}, cacheTime);
+
+// Call main function
 fetchDataAndRender();

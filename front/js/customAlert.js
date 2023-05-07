@@ -46,5 +46,9 @@ export default function showAlert(message) {
       alertContainer.remove();
     }, 500); // timeout for smooth transition
   }, 1000);
-}
 
+  // Close alert when clicked anywhere
+  alertContainer.addEventListener('click', () => {
+    alertContainer.remove();
+  });
+}

@@ -2,9 +2,8 @@
 
 'use strict';
 
-// Creating a new Cart instance
+// Importing class cart management purpose
 import Cart from "./classCart.js";
-const productToCart = new Cart();
 
 // Custom alert for better user experience
 import showAlert from './customAlert.js';
@@ -38,14 +37,18 @@ const fetchData = async () => {
     if (error instanceof TypeError || error instanceof DOMException) {
       // Network or CORS error
       throw new Error('There was a problem fetching the data. Please try again later.');
+    } else if (error instanceof SyntaxError) {
+      // JSON parse error
+      throw new Error('There was a problem parsing the data. Please try again later.');
     } else {
       throw new Error(error.message);
     }
   }
 };
 
+
 // DOM rendering product details on the webpage
-const renderProductDetails = ({imageUrl, altTxt, name, price, description, colors}) => {
+const renderProductDetails = ({ imageUrl, altTxt, name, price, description, colors }) => {
 
   // render product image
   const itemImage = document.createElement("img");
@@ -87,12 +90,12 @@ const renderProductDetails = ({imageUrl, altTxt, name, price, description, color
   itemQuantityContainer.setAttribute("aria-label", `Quantité souhaitée pour l'article ${name}`);
 
 
-   // adding product into cart
+  // adding product into cart
   const addToCart = document.getElementById("addToCart");
   addToCart.addEventListener('click', () => {
     const itemId = id;
     const itemColor = document.getElementById("colors").value;
-    const itemQuantity = document.getElementById("quantity").value;
+    const itemQuantity = parseInt(document.getElementById("quantity").value);
 
     if (itemColor === "" || itemQuantity <= 0) {
 
@@ -107,12 +110,14 @@ const renderProductDetails = ({imageUrl, altTxt, name, price, description, color
     addToCart.setAttribute("aria-label", `produit ${name} ${itemColor} ajouté au panier`);
 
     // passing product object through the add function in class cart
-    productToCart.classCartAdd({
+    const productToAdd = {
       _id: itemId,
       color: itemColor,
       quantity: itemQuantity,
-      name,
-    });
+      name
+    };
+
+    Cart.add(productToAdd);
   });
 };
 
@@ -126,6 +131,13 @@ const fetchDataAndRender = async () => {
   }
 }
 
-// Define cache variable and call main function
+// Define cache variable
+const cacheTime = 3600000; // 1 hour
 let cache = null;
+
+setInterval(() => {
+  cache = null;
+}, cacheTime);
+
+// Call main function
 fetchDataAndRender();

@@ -5,33 +5,37 @@
 // fetching and store data into cache avoiding unnecessary calls
 const fetchData = async () => {
   if (cache) {
-    return cache;
+      return cache;
   }
 
   try {
-    const response = await fetch(`http://localhost:3000/api/products`);
+      const response = await fetch(`http://localhost:3000/api/products`);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+      if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    const contentType = response.headers.get('Content-Type');
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
-      cache = data; // store data in cache
-      return data;
-    } else {
-      throw new Error('Response was not JSON');
-    }
+      const contentType = response.headers.get('Content-Type');
+      if (contentType && contentType.includes('application/json')) {
+          const data = await response.json();
+          cache = data; // store data in cache
+          return data;
+      } else {
+          throw new Error('Response was not JSON');
+      }
   } catch (error) {
-    if (error instanceof TypeError || error instanceof DOMException) {
-      // Network or CORS error
-      throw new Error('There was a problem fetching the data. Please try again later.');
-    } else {
-      throw new Error(error.message);
-    }
+      if (error instanceof TypeError || error instanceof DOMException) {
+          // Network or CORS error
+          throw new Error('There was a problem fetching the data. Please try again later.');
+      } else if (error instanceof SyntaxError) {
+          // JSON parse error
+          throw new Error('There was a problem parsing the data. Please try again later.');
+      } else {
+          throw new Error(error.message);
+      }
   }
 };
+
 
 // rendering product into webpage
 const renderProductDetails = (data) => {
@@ -82,6 +86,14 @@ const fetchDataAndRender = async () => {
   }
 }
 
-// Define cache variable and call main function
+
+// Define cache variable
+const cacheTime = 3600000; // 1 hour
 let cache = null;
+
+setInterval(() => {
+  cache = null;
+}, cacheTime);
+
+// Call main function
 fetchDataAndRender();
