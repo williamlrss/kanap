@@ -29,19 +29,18 @@ export default class Cart {
     classCartAdd(productInCart) {
         // Validate that the product being added is a valid object with required properties
         if (!productInCart || typeof productInCart !== "object" || productInCart instanceof String || productInCart instanceof Number) {
-            const errorMessage = `Invalid productInCart: must be an object with properties _id (string), color (string), and quantity (number). Received: ${productInCart}`;
+            const errorMessage = `Invalid productInCart: must be an object with properties _id (string), color (string), name (string) and quantity (number). Received: ${productInCart}`;
             console.error(errorMessage);
             showAlert(errorMessage);
             return false;
         }
 
         // Validate the required properties of the product being added
-        const { _id, color, quantity } = productInCart;
+        const { _id, color, quantity, name } = productInCart;
         if (!_id || typeof _id !== "string" || _id.trim().length === 0) {
             console.error('Invalid productInCart: _id must be a non-empty string');
             return false;
         }
-        console.log(productInCart.color, typeof productInCart.color);
         if (!color || typeof color !== "string" || color.trim().length === 0) {
             console.error('Invalid productInCart: color must be a non-empty string');
             return false;
@@ -50,9 +49,13 @@ export default class Cart {
             console.error('Invalid productInCart: quantity must be a number');
             return false;
         }
+        if (!name || typeof name !== "string" || name.trim().length === 0) {
+            console.error('Invalid productInCart: name must be a non-empty string');
+            return false;
+        }
 
         // Check if the product being added is already in the cart
-        const foundProductInCart = this.cart.find(p => p._id === _id && p.color === color && p.imageUrl === productInCart.imageUrl);
+        const foundProductInCart = this.cart.find(p => p._id === _id && p.color === color);
 
         // If the product is already in the cart, add the new quantity to the existing quantity
         if (foundProductInCart) {
@@ -65,7 +68,7 @@ export default class Cart {
 
         // Save the updated cart state to localStorage and show a success message to the user
         this.save();
-        showAlert(`Produit ajouté au panier : ${productInCart.name} | ${color} | quantité : ${productInCart.quantity}`);
+        showAlert(`Produit ajouté au panier : ${name} | ${color} | quantité : ${quantity}`);
         return true;
     }
 

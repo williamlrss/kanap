@@ -60,6 +60,7 @@ const renderProductDetails = ({ imageUrl, altTxt, name, price, description, colo
   // render product name
   const itemHeading = document.createElement("h1");
   itemHeading.textContent = name;
+  itemHeading.setAttribute("id", 'title');
   const itemHeadingContainer = document.querySelector(".item__content__titlePrice");
   itemHeadingContainer.append(itemHeading);
 
@@ -88,14 +89,19 @@ const renderProductDetails = ({ imageUrl, altTxt, name, price, description, colo
   // adding accessibility labels
   itemOptionContainer.setAttribute("aria-label", `Couleurs disponibles pour l'article ${name}, ${colors.join(", ")}`);
   itemQuantityContainer.setAttribute("aria-label", `Quantité souhaitée pour l'article ${name}`);
+};
 
 
-  // adding product into cart
+
+const handleUserInteraction = () => {
   const addToCart = document.getElementById("addToCart");
+
   addToCart.addEventListener('click', () => {
     const itemId = id;
     const itemColor = document.getElementById("colors").value;
     const itemQuantity = parseInt(document.getElementById("quantity").value);
+    const itemName = document.getElementById('title').textContent;
+
 
     if (itemColor === "" || itemQuantity <= 0) {
 
@@ -106,26 +112,28 @@ const renderProductDetails = ({ imageUrl, altTxt, name, price, description, colo
       return false
     }
 
-    // adding successful accessibility label
-    addToCart.setAttribute("aria-label", `produit ${name} ${itemColor} ajouté au panier`);
-
     // passing product object through the add function in class cart
     const productToAdd = {
       _id: itemId,
       color: itemColor,
       quantity: itemQuantity,
-      name
+      name: itemName,
     };
 
     Cart.add(productToAdd);
+
+    // adding successful accessibility label
+    addToCart.setAttribute("aria-label", `produit ${itemName} ${itemColor} ajouté au panier`);
   });
-};
+}
+
 
 // Call the rendering function after successful fetching & data retrieving
 const fetchDataAndRender = async () => {
   try {
     const data = await fetchData();
-    renderProductDetails(data);
+    await renderProductDetails(data);
+    handleUserInteraction();
   } catch (error) {
     console.log('FetchData() Error, rendering products details failure:', error.message);
   }
