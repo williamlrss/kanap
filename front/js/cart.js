@@ -236,7 +236,7 @@ const displayMsgIfEmpty = () => {
 const fetchDataAndRender = async () => {
     try {
         const data = await fetchData();
-        await renderCartProducts(data);
+        renderCartProducts(data);
         handleUserInteractions();
         updateTotals();
         displayMsgIfEmpty();

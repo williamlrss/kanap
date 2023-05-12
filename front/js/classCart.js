@@ -88,7 +88,7 @@ export default class Cart {
             return false;
         }
 
-        // Remove the selected product from the cart by filtering out all products that match the selected product
+        // The deletion is done by creating an identical cart, filtered by omitting this product.
         this.cart = this.cart.filter(p => p._id !== productInCart._id || p.color !== productInCart.color);
 
         // Save the updated cart state to localStorage and show a success message to the user
